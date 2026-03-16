@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Church Key Manager</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+    body { background-color: #f3f4f6; font-family: 'Inter', sans-serif; }
+    .main-card { background: white; border-radius: 1.5rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+    .toggle-bg { transition: background-color 0.3s ease; }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+  <div class="w-full max-w-md p-8 main-card border border-gray-100">
+    <div class="flex items-center justify-between mb-6 border-b pb-4">
+      <div>
+        <h2 class="text-2xl font-extrabold text-gray-900">Key Manager</h2>
+        <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">MiraclePoint</p>
+      </div>
+      <div class="p-2 bg-blue-50 rounded-lg">
+        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+      </div>
+    </div>
+    
+    <form id="keyForm" class="space-y-5">
+      <div>
+        <label class="block mb-2 text-sm font-bold text-gray-700">Individual Name</label>
+        <input type="text" id="name" autocomplete="off" 
+               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full p-3.5" 
+               placeholder="Start typing name..." required>
+      </div>
+
+      <div id="outstandingList" class="hidden p-4 bg-amber-50 border border-amber-100 rounded-2xl">
+        <p class="text-[10px] font-black text-amber-800 uppercase tracking-widest mb-2">Existing Keys / Return</p>
+        <ul id="keyList" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar"></ul>
+      </div>
+
+      <div>
+        <label class="block mb-2 text-sm font-bold text-gray-700">Key Area</label>
+        <div class="flex gap-2">
+          <select id="areaSelect" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full p-3.5" required>
+            <option value="" disabled selected>Select an area...</option>
+            <option>ENTRY DOOR & MULTI PURPOSE</option>
+            <option>MP OFFICE</option>
+            <option>KEY BOXMAIL BOX</option>
+            <option>POSTAL BOX</option>
+            <option>Office Cabinet</option>
+            <option>Multi Purpose Cabinet</option>
+            <option>Disabled Toilet</option>
+            <option>Cash Box</option>
+            <option>SERVER CABINET</option>
+            <option>POD</option>
+            <option>POD SERVER CABINET</option>
+          </select>
+          <button type="button" onclick="addNewArea()" class="text-white bg-blue-600 hover:bg-blue-700 font-bold rounded-xl text-2xl px-5 transition-all">+</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block mb-2 text-sm font-bold text-gray-700 text-xs">Check Out</label>
+          <input type="date" id="checkOut" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl block w-full p-3">
+        </div>
+        <div>
+          <label class="block mb-2 text-sm font-bold text-gray-700 text-xs">Check In</label>
+          <input type="date" id="checkIn" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl block w-full p-3">
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-200">
+        <span class="text-sm font-bold text-gray-700">MiraclePoint Member?</span>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="isMember" class="sr-only peer">
+          <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 toggle-bg"></div>
+        </label>
+      </div>
+
+      <button type="submit" id="submitBtn" class="w-full text-white bg-gray-900 hover:bg-black font-bold rounded-2xl text-sm px-5 py-4 transition-all uppercase tracking-wide">LOG ENTRY</button>
+    </form>
+    
+    <div id="status" class="mt-4 text-center text-xs font-bold uppercase tracking-tight"></div>
+  </div>
+
+  <div class="mt-8 text-center">
+    <a href="https://docs.google.com/spreadsheets/d/1RKfXO6qp5mdrhtZAybniKyyFyKGlPNSnVkIDuyl1axE/" target="_blank" class="text-gray-400 hover:text-blue-600 text-xs font-semibold transition-colors flex items-center justify-center gap-1">
+      Link to Database 
+      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+    </a>
+  </div>
+
+  <script>
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxS27e-caZgCo8tuIS5YLVjgMhC4tbzRab5nl9I0IrB9w7BGAWCl5mzc3naOLa6t4yQ0w/exec";
+
+    let debounceTimer;
+
+    document.getElementById('name').addEventListener('input', function() {
+      const nameVal = this.value;
+      const listDiv = document.getElementById('outstandingList');
+      clearTimeout(debounceTimer);
+      if (nameVal.length < 2) {
+        listDiv.classList.add('hidden');
+        return;
+      }
+      debounceTimer = setTimeout(() => {
+        lookupUser(nameVal);
+      }, 300);
+    });
+
+    function addNewArea() {
+      const val = prompt("Enter new Key Area:");
+      if (val) {
+        const sel = document.getElementById('areaSelect');
+        const opt = document.createElement('option');
+        opt.text = val.trim();
+        sel.add(opt);
+        sel.value = val.trim();
+      }
+    }
+
+    async function lookupUser(name) {
+      const listDiv = document.getElementById('outstandingList');
+      const listUl = document.getElementById('keyList');
+      listUl.innerHTML = "<li class='text-xs text-amber-600 animate-pulse'>Searching...</li>";
+      listDiv.classList.remove('hidden');
+      try {
+        const response = await fetch(`${WEB_APP_URL}?action=search&name=${encodeURIComponent(name)}`);
+        const keys = await response.json();
+        if (keys.length === 0) {
+          listUl.innerHTML = "<li class='text-xs text-blue-600 font-bold'>New Individual / No existing keys.</li>";
+        } else {
+          listUl.innerHTML = keys.map(k => `
+            <li class="flex items-center justify-between p-2.5 bg-white rounded-lg border border-amber-100 shadow-sm">
+              <span class="text-xs text-gray-700 font-semibold">${k.area}</span>
+              <button type="button" onclick="processReturn(${k.rowIndex})" 
+                class="bg-red-500 hover:bg-red-600 text-white text-[9px] font-black py-1.5 px-3 rounded-md transition-all">RETURN</button>
+            </li>
+          `).join('');
+        }
+      } catch (err) {
+        listUl.innerHTML = "<li class='text-xs text-red-500'>Connection error.</li>";
+      }
+    }
+
+    async function processReturn(rowIndex) {
+      if (!confirm("Return this key?")) return;
+      const status = document.getElementById('status');
+      status.innerText = "Processing...";
+      try {
+        const response = await fetch(`${WEB_APP_URL}?action=return&rowIndex=${rowIndex}`);
+        if (response.ok) {
+          status.innerText = "✅ Key Returned";
+          status.className = "mt-4 text-center text-xs font-bold text-green-600 uppercase tracking-tight";
+          lookupUser(document.getElementById('name').value); 
+        }
+      } catch (err) {
+        status.innerText = "❌ Error processing return";
+        status.className = "mt-4 text-center text-xs font-bold text-red-600 uppercase tracking-tight";
+      }
+    }
+
+    document.getElementById('keyForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const status = document.getElementById('status');
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerText = "SAVING ENTRY...";
+      const formData = {
+        name: document.getElementById('name').value,
+        area: document.getElementById('areaSelect').value,
+        checkOut: document.getElementById('checkOut').value,
+        checkIn: document.getElementById('checkIn').value,
+        isMember: document.getElementById('isMember').checked
+      };
+      fetch(WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors", 
+        body: JSON.stringify(formData)
+      })
+      .then(() => {
+        status.innerText = "✅ Entry Logged to Spreadsheet";
+        status.className = "mt-4 text-center text-xs font-bold text-green-600 uppercase tracking-tight";
+        btn.disabled = false;
+        btn.innerText = "LOG ENTRY";
+        document.getElementById('keyForm').reset();
+        document.getElementById('outstandingList').classList.add('hidden');
+      })
+      .catch(() => {
+        status.innerText = "❌ Failed to Save";
+        status.className = "mt-4 text-center text-xs font-bold text-red-600 uppercase tracking-tight";
+        btn.disabled = false;
+        btn.innerText = "RETRY";
+      });
+    });
+  </script>
+</body>
+</html>
